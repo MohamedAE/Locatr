@@ -2,6 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="locatr.android.bignerdranch.com.locatr">
 
+    <!-- Access to location from GPS radio -->
+    <uses-permission
+        android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <!-- Access to location from cell towers and wifi -->
+    <uses-permission
+        android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <!-- Access to internet for Flickr queries -->
+    <uses-permission
+        android:name="android.permission.INTERNET"/>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
