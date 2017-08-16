@@ -11,6 +11,11 @@
     <!-- Access to internet for Flickr queries -->
     <uses-permission
         android:name="android.permission.INTERNET"/>
+    <!-- Query the state of the network -->
+    <uses-permission
+        android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <!-- Write data to storage temporarily -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
     <application
         android:allowBackup="true"
