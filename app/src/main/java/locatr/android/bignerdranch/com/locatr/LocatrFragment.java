@@ -22,7 +22,16 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
 import java.util.List;
@@ -42,6 +51,7 @@ public class LocatrFragment extends SupportMapFragment {
 
 	//Access to Play Services
 	private GoogleApiClient mClient;
+	private GoogleMap mMap;
 	private Bitmap mMapImage;
 	private GalleryItem mMapItem;
 	private Location mCurrentLocation;
@@ -70,6 +80,18 @@ public class LocatrFragment extends SupportMapFragment {
 					}
 				})
 				.build();
+
+		/*Acquire a reference to the master GoogleMap object
+		* GoogleMap - The main class for Google Maps API, cannot be instantiated
+		* SupportMapFragment.getMapAsync(...) - Retrieves GoogleMap object asynchronously*/
+		getMapAsync(new OnMapReadyCallback() {
+			@Override
+			public void onMapReady(GoogleMap googleMap) {
+				mMap = googleMap;
+				//Update map view as soon as mMap is instantiated
+				updateUI();
+			}
+		});
 	}
 
 	@Override
@@ -149,6 +171,49 @@ public class LocatrFragment extends SupportMapFragment {
 				});
 	}
 
+	/*Updates Map view after pinch-zooming and panning*/
+	private void updateUI() {
+		if (mMap == null || mMapImage == null) {
+			return;
+		}
+
+		//Get two corner points bounding updated view
+		LatLng itemPoint = new LatLng(mMapItem.getLat(), mMapItem.getLon());
+		LatLng myPoint = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+
+		//BitmapDescriptor - Describes meta data of a Bitmap object
+		//Instantiate a BitmapDescriptor
+		BitmapDescriptor itemBitmap = BitmapDescriptorFactory.fromBitmap(mMapImage);
+
+		//MarkerOptions - Desciption details of a Bitmap's attributes
+		MarkerOptions itemMarker = new MarkerOptions()
+				.position(itemPoint)
+				.icon(itemBitmap);
+		MarkerOptions myMarker = new MarkerOptions()
+				.position(myPoint);
+
+		//Remove all markers, polygons, overlays, etc.
+		mMap.clear();
+		//Add markers to global GoogleMap object
+		mMap.addMarker(itemMarker);
+		mMap.addMarker(myMarker);
+
+		//Construct latitude/longitude aligned rectangle
+		LatLngBounds bounds = new LatLngBounds.Builder()
+				.include(itemPoint)
+				.include(myPoint)
+				.build();
+
+		int margin = getResources().getDimensionPixelSize(R.dimen.map_inset_margin);
+
+		//CameraUpdate - Holds methods to handle manipulation of map view
+		//Create a new update to point view at the new LatLngBounds
+		CameraUpdate update = CameraUpdateFactory.newLatLngBounds(bounds, margin);
+
+		//Move camera to new location, with an animation
+		mMap.animateCamera(update);
+	}
+
 	/*An async task that passes a location as a search parameter to Flickr*/
 	private class SearchTask extends AsyncTask<Location, Void, Void> {
 
@@ -195,6 +260,9 @@ public class LocatrFragment extends SupportMapFragment {
 			if (mProgressDialog != null) {
 				mProgressDialog.dismiss();
 			}
+
+			//Update UI on the completion of a search
+			updateUI();
 		}
 
 	}
